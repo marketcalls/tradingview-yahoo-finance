@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradingView Chart with Yahoo Finance Data</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-black">
+    <div class="flex flex-col h-screen">
+        <header class="p-4 bg-gray-800 text-black">
+            <div class="flex justify-between items-center mt-4">
+                <div id="controls" class="flex space-x-4">
+                    <input type="text" id="ticker" class="p-2 rounded border" placeholder="Enter stock symbol" value="NVDA">
+                    <select id="timeframe" class="p-2 rounded border">
+                        <option value="1m">1 Minute</option>
+                        <option value="5m">5 Minutes</option>
+                        <option value="15m">15 Minutes</option>
+                        <option value="60m">Hourly</option>
+                        <option value="1d" selected>Daily</option>
+                        <option value="1wk">Weekly</option>
+                        <option value="1mo">Monthly</option>
+                    </select>
+                    <button id="fetchData" class="p-2 bg-blue-500 text-white rounded">Fetch Data</button>
+                </div>
+                <button id="themeToggle" class="p-2 bg-gray-700 text-white rounded">Toggle Theme</button>
+            </div>
+        </header>
+        <main class="flex-grow">
+            <div id="chart" class="w-full h-full"></div>
+        </main>
+    </div>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <script>
+        // Initial chart setup
+        const chartOptions = {
+            layout: {
+                background: { type: 'solid', color: 'white' },
+                textColor: 'black',
+            },
+            grid: {
+                vertLines: {
+                    color: '#e1e1e1',
+                },
+                horzLines: {
+                    color: '#e1e1e1',
+                },
+            },
+            width: document.getElementById('chart').clientWidth,
+            height: document.getElementById('chart').clientHeight,
+        };
+
+        const chart = LightweightCharts.createChart(document.getElementById('chart'), chartOptions);
+        const candlestickSeries = chart.addCandlestickSeries();
+
+        // Fetch data function
+        function fetchData(ticker, timeframe) {
+            fetch(`/api/data/${ticker}/${timeframe}`)
+                .then(response => response.json())
+                .then(data => {
+                    candlestickSeries.setData(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        // Fetch NVDA data on page load with default timeframe (daily)
+        window.addEventListener('load', () => {
+            fetchData('NVDA', '1d');
+        });
+
+        // Handle data fetching on button click
+        document.getElementById('fetchData').addEventListener('click', () => {
+            const ticker = document.getElementById('ticker').value;
+            const timeframe = document.getElementById('timeframe').value;
+            fetchData(ticker, timeframe);
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            chart.resize(document.getElementById('chart').clientWidth, document.getElementById('chart').clientHeight);
+        });
+
+        // Theme toggle functionality
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const bodyClassList = document.body.classList;
+            if (bodyClassList.contains('bg-white')) {
+                bodyClassList.replace('bg-white', 'bg-gray-900');
+                bodyClassList.replace('text-black', 'text-white');
+                chart.applyOptions({
+                    layout: {
+                        background: { type: 'solid', color: 'black' },
+                        textColor: 'white',
+                    },
+                    grid: {
+                        vertLines: {
+                            color: 'black',
+                        },
+                        horzLines: {
+                            color: '',
+                        },
+                    }
+                });
+            } else {
+                bodyClassList.replace('bg-gray-900', 'bg-white');
+                bodyClassList.replace('text-white', 'text-black');
+                chart.applyOptions({
+                    layout: {
+                        background: { type: 'solid', color: 'white' },
+                        textColor: 'black',
+                    },
+                    grid: {
+                        vertLines: {
+                            color: '#e1e1e1',
+                        },
+                        horzLines: {
+                            color: '#e1e1e1',
+                        },
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
