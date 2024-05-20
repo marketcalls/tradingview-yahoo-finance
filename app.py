@@ -61,5 +61,11 @@ def get_data(ticker, interval, ema_period, rsi_period):
     candlestick_data, ema_data, rsi_data = fetch_yahoo_data(ticker, interval, ema_period, rsi_period)
     return jsonify({'candlestick': candlestick_data, 'ema': ema_data, 'rsi': rsi_data})
 
+@app.route('/api/symbols')
+def get_symbols():
+    with open('symbols.txt') as f:
+        symbols = [line.strip() for line in f]
+    return jsonify(symbols)
+
 if __name__ == '__main__':
     app.run(debug=True)

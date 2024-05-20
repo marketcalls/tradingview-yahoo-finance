@@ -50,6 +50,7 @@ function fetchData(ticker, timeframe, emaPeriod, rsiPeriod) {
 // Fetch NVDA data on page load with default timeframe (daily), EMA period (20) and RSI period (14)
 window.addEventListener('load', () => {
     fetchData('NVDA', '1d', 20, 14);
+    loadWatchlist();
 });
 
 // Handle data fetching on button click
@@ -86,9 +87,12 @@ window.addEventListener('resize', () => {
 // Theme toggle functionality
 document.getElementById('themeToggle').addEventListener('click', () => {
     const bodyClassList = document.body.classList;
+    const watchlist = document.getElementById('watchlist');
     if (bodyClassList.contains('bg-white')) {
         bodyClassList.replace('bg-white', 'bg-gray-900');
         bodyClassList.replace('text-black', 'text-white');
+        watchlist.classList.replace('bg-gray-100', 'bg-gray-800');
+        watchlist.classList.replace('text-black', 'text-white');
         chart.applyOptions({
             layout: {
                 background: { type: 'solid', color: 'black' },
@@ -120,6 +124,8 @@ document.getElementById('themeToggle').addEventListener('click', () => {
     } else {
         bodyClassList.replace('bg-gray-900', 'bg-white');
         bodyClassList.replace('text-white', 'text-black');
+        watchlist.classList.replace('bg-gray-800', 'bg-gray-100');
+        watchlist.classList.replace('text-white', 'text-black');
         chart.applyOptions({
             layout: {
                 background: { type: 'solid', color: 'white' },
@@ -150,3 +156,26 @@ document.getElementById('themeToggle').addEventListener('click', () => {
         });
     }
 });
+
+// Load watchlist symbols from the server
+function loadWatchlist() {
+    fetch('/api/symbols')
+        .then(response => response.json())
+        .then(symbols => {
+            const watchlistItems = document.getElementById('watchlistItems');
+            watchlistItems.innerHTML = '';
+            symbols.forEach(symbol => {
+                const item = document.createElement('div');
+                item.className = 'watchlist-item';
+                item.innerText = symbol;
+                item.addEventListener('click', () => {
+                    document.getElementById('ticker').value = symbol;
+                    fetchData(symbol, document.getElementById('timeframe').value, document.getElementById('emaPeriod').value, document.getElementById('rsiPeriod').value);
+                });
+                watchlistItems.appendChild(item);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading watchlist:', error);
+        });
+}
