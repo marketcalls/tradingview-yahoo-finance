@@ -26,11 +26,11 @@ Follow these steps to set up and run the application:
    cd tradingview-yahoo-finance
    ```
 
-2. **Create a virtual environment:**
+2. **Create a virtual environment(Windows):**
 
    ```sh
-   python3 -m venv venv
-   source venv/bin/activate
+   python -m venv venv
+   myenv\Scripts\activate.bat
    ```
 
 3. **Install the dependencies:**
