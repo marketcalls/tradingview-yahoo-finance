@@ -45,9 +45,9 @@ def fetch_yahoo_data(ticker, interval, ema_period=20, rsi_period=14):
     rsi_data = [
         {
             'time': int(row.Index.timestamp()),
-            'value': row.RSI
+            'value': row.RSI if not pd.isna(row.RSI) else 0  # Convert NaN to zero
         }
-        for row in data.itertuples() if not pd.isna(row.RSI)
+        for row in data.itertuples()
     ]
 
     return candlestick_data, ema_data, rsi_data

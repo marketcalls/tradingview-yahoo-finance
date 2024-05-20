@@ -24,16 +24,16 @@
 <body class="bg-white text-black">
     <div class="flex h-screen">
         <div class="flex-grow flex flex-col">
-            <header class="p-4 bg-gray-800 text-black">
+            <header class="p-4 bg-gray-800 text-white">
                 <div class="flex justify-between items-center mt-4">
                     <div id="controls" class="flex space-x-4 items-center">
                         <div class="flex items-center space-x-2">
                             <label for="ticker" class="text-white">Symbol</label>
-                            <input type="text" id="ticker" class="p-2 rounded border w-24" placeholder="Symbol" value="NVDA">
+                            <input type="text" id="ticker" class="p-2 rounded border w-24 bg-gray-900 text-white" placeholder="Symbol" value="NVDA">
                         </div>
                         <div class="flex items-center space-x-2">
                             <label for="timeframe" class="text-white">Interval</label>
-                            <select id="timeframe" class="p-2 rounded border w-20">
+                            <select id="timeframe" class="p-2 rounded border w-20 bg-gray-900 text-white">
                                 <option value="1m">1m</option>
                                 <option value="5m">5m</option>
                                 <option value="15m">15m</option>
@@ -45,11 +45,11 @@
                         </div>
                         <div class="flex items-center space-x-2">
                             <label for="emaPeriod" class="text-white">EMA</label>
-                            <input type="number" id="emaPeriod" class="p-2 rounded border w-16" placeholder="EMA" value="20" min="1" max="200">
+                            <input type="number" id="emaPeriod" class="p-2 rounded border w-16 bg-gray-900 text-white" placeholder="EMA" value="20" min="1" max="200">
                         </div>
                         <div class="flex items-center space-x-2">
                             <label for="rsiPeriod" class="text-white">RSI</label>
-                            <input type="number" id="rsiPeriod" class="p-2 rounded border w-16" placeholder="RSI" value="14" min="1" max="200">
+                            <input type="number" id="rsiPeriod" class="p-2 rounded border w-16 bg-gray-900 text-white" placeholder="RSI" value="14" min="1" max="200">
                         </div>
                         <button id="fetchData" class="p-2 bg-blue-500 text-white rounded">Fetch Data</button>
                         <div class="flex items-center space-x-2">
@@ -58,7 +58,7 @@
                         </div>
                         <div class="flex items-center space-x-2">
                             <label for="updateFrequency" class="text-white">Frequency (s)</label>
-                            <input type="number" id="updateFrequency" class="p-2 rounded border w-12" placeholder="5" value="5" min="1">
+                            <input type="number" id="updateFrequency" class="p-2 rounded border w-12 bg-gray-900 text-white" placeholder="5" value="5" min="1">
                         </div>
                     </div>
                     <button id="themeToggle" class="p-2 bg-gray-700 text-white rounded">Toggle Theme</button>

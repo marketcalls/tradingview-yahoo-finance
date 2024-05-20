@@ -1,5 +1,5 @@
 // Initial chart setup
-const chartOptions = {
+const chartOptions1 = {
     layout: {
         background: { type: 'solid', color: 'white' },
         textColor: 'black',
@@ -12,20 +12,44 @@ const chartOptions = {
             color: '#e1e1e1',
         },
     },
+    crosshair: {
+        mode: LightweightCharts.CrosshairMode.Normal,
+    },
+    timeScale: {
+        visible: false,
+    },
     width: document.getElementById('chart').clientWidth,
     height: document.getElementById('chart').clientHeight,
 };
 
-const chart = LightweightCharts.createChart(document.getElementById('chart'), chartOptions);
+const chartOptions2 = {
+    layout: {
+        background: { type: 'solid', color: 'white' },
+        textColor: 'black',
+    },
+    grid: {
+        vertLines: {
+            color: '#e1e1e1',
+        },
+        horzLines: {
+            color: '#e1e1e1',
+        },
+    },
+    timeScale: {
+        visible: true,
+    },
+    width: document.getElementById('chart').clientWidth,
+    height: document.getElementById('rsiChart').clientHeight,
+};
+
+const chart = LightweightCharts.createChart(document.getElementById('chart'), chartOptions1);
 const candlestickSeries = chart.addCandlestickSeries();
 const emaLine = chart.addLineSeries({
     color: 'blue', // Set the color for the EMA line
     lineWidth: 2
 });
-const rsiChart = LightweightCharts.createChart(document.getElementById('rsiChart'), {
-    ...chartOptions,
-    height: document.getElementById('rsiChart').clientHeight,
-});
+
+const rsiChart = LightweightCharts.createChart(document.getElementById('rsiChart'),chartOptions2);
 const rsiLine = rsiChart.addLineSeries({
     color: 'red', // Set the color for the RSI line
     lineWidth: 2
@@ -41,6 +65,8 @@ function fetchData(ticker, timeframe, emaPeriod, rsiPeriod) {
             candlestickSeries.setData(data.candlestick);
             emaLine.setData(data.ema);
             rsiLine.setData(data.rsi);
+
+            
         })
         .catch(error => {
             console.error('Error fetching data:', error);
@@ -88,11 +114,16 @@ window.addEventListener('resize', () => {
 document.getElementById('themeToggle').addEventListener('click', () => {
     const bodyClassList = document.body.classList;
     const watchlist = document.getElementById('watchlist');
+    const inputs = document.querySelectorAll('input, select');
     if (bodyClassList.contains('bg-white')) {
         bodyClassList.replace('bg-white', 'bg-gray-900');
         bodyClassList.replace('text-black', 'text-white');
         watchlist.classList.replace('bg-gray-100', 'bg-gray-800');
         watchlist.classList.replace('text-black', 'text-white');
+        inputs.forEach(input => {
+            input.classList.replace('bg-white', 'bg-gray-900');
+            input.classList.replace('text-black', 'text-white');
+        });
         chart.applyOptions({
             layout: {
                 background: { type: 'solid', color: 'black' },
@@ -126,6 +157,10 @@ document.getElementById('themeToggle').addEventListener('click', () => {
         bodyClassList.replace('text-white', 'text-black');
         watchlist.classList.replace('bg-gray-800', 'bg-gray-100');
         watchlist.classList.replace('text-white', 'text-black');
+        inputs.forEach(input => {
+            input.classList.replace('bg-gray-900', 'bg-white');
+            input.classList.replace('text-white', 'text-black');
+        });
         chart.applyOptions({
             layout: {
                 background: { type: 'solid', color: 'white' },
@@ -179,3 +214,44 @@ function loadWatchlist() {
             console.error('Error loading watchlist:', error);
         });
 }
+
+// Sync visible logical range between charts
+function syncVisibleLogicalRange(chart1, chart2) {
+    chart1.timeScale().subscribeVisibleLogicalRangeChange(timeRange => {
+        chart2.timeScale().setVisibleLogicalRange(timeRange);
+    });
+
+    chart2.timeScale().subscribeVisibleLogicalRangeChange(timeRange => {
+        chart1.timeScale().setVisibleLogicalRange(timeRange);
+    });
+}
+
+
+syncVisibleLogicalRange(chart, rsiChart);
+
+// Sync crosshair position between charts
+function getCrosshairDataPoint(series, param) {
+    if (!param.time) {
+        return null;
+    }
+    const dataPoint = param.seriesData.get(series);
+    return dataPoint || null;
+}
+
+function syncCrosshair(chart, series, dataPoint) {
+    if (dataPoint) {
+        chart.setCrosshairPosition(dataPoint.value, dataPoint.time, series);
+        return;
+    }
+    chart.clearCrosshairPosition();
+}
+
+chart.subscribeCrosshairMove(param => {
+    const dataPoint = getCrosshairDataPoint(candlestickSeries, param);
+    syncCrosshair(rsiChart, rsiLine, dataPoint);
+});
+
+rsiChart.subscribeCrosshairMove(param => {
+    const dataPoint = getCrosshairDataPoint(rsiLine, param);
+    syncCrosshair(chart, candlestickSeries, dataPoint);
+});
