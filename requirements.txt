@@ -14,6 +14,7 @@ MarkupSafe==2.1.5
 multitasking==0.0.11
 numpy==1.26.4
 pandas==2.2.2
+pandas_ta==0.3.14b0
 peewee==3.17.5
 platformdirs==4.2.2
 python-dateutil==2.9.0.post0
