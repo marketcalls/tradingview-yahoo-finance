@@ -11,7 +11,7 @@ def fetch_yahoo_data(ticker, interval, ema_period=20, rsi_period=14):
     if interval in ['1m', '5m']:
         start_date = end_date - timedelta(days=7)
     elif interval in ['15m', '60m']:
-        start_date = end_date - timedelta(days=30)
+        start_date = end_date - timedelta(days=60)
     elif interval == '1d':
         start_date = end_date - timedelta(days=365*5)
     elif interval == '1wk':
