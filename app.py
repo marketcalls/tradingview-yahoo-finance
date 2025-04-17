@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 
 def fetch_yahoo_data(ticker, interval, ema_period=20, rsi_period=14):
+    ticker = yf.Ticker(ticker)
+
     end_date = datetime.now()
     if interval in ['1m', '5m']:
         start_date = end_date - timedelta(days=7)
@@ -19,7 +21,7 @@ def fetch_yahoo_data(ticker, interval, ema_period=20, rsi_period=14):
     elif interval == '1mo':
         start_date = end_date - timedelta(days=365*5)
 
-    data = yf.download(ticker, start=start_date, end=end_date, interval=interval)
+    data = ticker.history(start=start_date, end=end_date, interval=interval)
     data['EMA'] = ta.ema(data['Close'], length=ema_period)
     data['RSI'] = ta.rsi(data['Close'], length=rsi_period)
 

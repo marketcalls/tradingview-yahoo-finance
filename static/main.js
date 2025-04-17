@@ -43,17 +43,26 @@ const chartOptions2 = {
 };
 
 const chart = LightweightCharts.createChart(document.getElementById('chart'), chartOptions1);
-const candlestickSeries = chart.addCandlestickSeries();
-const emaLine = chart.addLineSeries({
-    color: 'blue', // Set the color for the EMA line
-    lineWidth: 2
-});
+const candlestickSeries = chart.addSeries(
+    LightweightCharts.CandlestickSeries,
+    {
+      upColor: '#26a69a',
+      downColor: '#ef5350',
+      borderVisible: false,
+      wickUpColor: '#26a69a',
+      wickDownColor: '#ef5350',
+    }
+);
+const emaLine = chart.addSeries(
+    LightweightCharts.LineSeries,
+    { color: 'blue', lineWidth: 2 }
+);
 
 const rsiChart = LightweightCharts.createChart(document.getElementById('rsiChart'),chartOptions2);
-const rsiLine = rsiChart.addLineSeries({
-    color: 'red', // Set the color for the RSI line
-    lineWidth: 2
-});
+const rsiLine = rsiChart.addSeries(
+    LightweightCharts.LineSeries,
+    { color: 'red', lineWidth: 2}
+);
 
 let autoUpdateInterval;
 
