@@ -128,6 +128,17 @@
             box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.5);
             border-color: #3b82f6;
         }
+        
+        /* Symbol removal animation */
+        .animate-fade-out {
+            transition: all 0.3s ease-out;
+        }
+        
+        /* Highlight the active symbol in watchlist */
+        .card.border-primary {
+            border-width: 2px !important;
+            box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.2);
+        }
     </style>
 </head>
 <body class="min-h-screen animate-fade-in" data-theme="light">
@@ -240,14 +251,12 @@
         <!-- Sidebar content -->
         <div class="drawer-side z-40">
             <label for="drawer-toggle" aria-label="close sidebar" class="drawer-overlay"></label>
-            <div id="watchlist" class="menu p-4 w-64 min-h-full bg-base-100 text-base-content">
-                <div class="flex items-center justify-between mb-4">
+            <div id="watchlist" class="menu p-0 w-72 min-h-full bg-base-100 text-base-content flex flex-col">
+                <div class="p-4 border-b border-base-300">
                     <h3 class="text-lg font-bold">Watchlist</h3>
-                    <button class="btn btn-ghost btn-circle btn-sm">
-                        <i class="fas fa-plus text-primary"></i>
-                    </button>
                 </div>
-                <div id="watchlistItems" class="flex flex-col gap-2 overflow-y-auto max-h-[calc(100vh-6rem)]"></div>
+                <!-- Add symbol form will be inserted here by JavaScript -->
+                <div id="watchlistItems" class="flex flex-col gap-2 p-4 overflow-y-auto max-h-[calc(100vh-10rem)]"></div>
             </div>
         </div>
     </div>

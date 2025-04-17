@@ -278,8 +278,43 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 
 // Load watchlist symbols from the server with real quotes
 function loadWatchlist() {
-    // Show loading state
+    // Get the watchlist container
+    const watchlistContainer = document.getElementById('watchlist');
     const watchlistItems = document.getElementById('watchlistItems');
+    
+    // Check if add symbol form already exists and remove it
+    const existingForm = document.getElementById('add-symbol-form');
+    if (existingForm) {
+        existingForm.remove();
+    }
+    
+    // Create the add symbol form at the top
+    const addForm = document.createElement('div');
+    addForm.id = 'add-symbol-form';
+    addForm.className = 'form-control mb-4 p-4 border-b border-base-300';
+    addForm.innerHTML = `
+        <div class="input-group">
+            <input type="text" id="newSymbol" placeholder="Add new symbol..." 
+                class="input input-bordered w-full focus:outline-primary" />
+            <button id="addSymbolBtn" class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+        <div id="symbolError" class="text-error text-xs mt-1 hidden"></div>
+    `;
+    
+    // Insert form before the watchlist items
+    watchlistContainer.insertBefore(addForm, watchlistItems);
+    
+    // Add event listeners to the form
+    document.getElementById('addSymbolBtn').addEventListener('click', addSymbol);
+    document.getElementById('newSymbol').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            addSymbol();
+        }
+    });
+    
+    // Show loading state in the watchlist items
     watchlistItems.innerHTML = `
         <div class="flex justify-center items-center p-8">
             <span class="loading loading-spinner loading-md text-primary"></span>
@@ -306,7 +341,7 @@ function loadWatchlist() {
             
             symbolsData.forEach(symbolData => {
                 const item = document.createElement('div');
-                item.className = 'card bg-base-100 hover:bg-base-200 shadow-sm hover:shadow cursor-pointer transition-all';
+                item.className = 'card bg-base-100 hover:bg-base-200 shadow-sm hover:shadow cursor-pointer transition-all group relative';
                 
                 // Format the data
                 const price = symbolData.price ? symbolData.price.toFixed(2) : 'N/A';
@@ -316,7 +351,7 @@ function loadWatchlist() {
                 const changeIcon = isPositive ? 'caret-up' : (changePercent < 0 ? 'caret-down' : 'minus');
                 
                 // Create tooltip with more info
-                const tooltipContent = `${symbolData.name || symbolData.symbol} (${symbolData.currency})`;
+                const tooltipContent = `${symbolData.name || symbolData.symbol}`;
                 
                 item.innerHTML = `
                     <div class="card-body p-3" data-tip="${tooltipContent}">
@@ -328,13 +363,16 @@ function loadWatchlist() {
                                 </div>
                             </div>
                             <div class="text-right">
-                                <div class="font-medium">${symbolData.currency} ${price}</div>
+                                <div class="font-medium">${price}</div>
                                 <div class="text-xs ${changeClass}">
                                     <i class="fas fa-${changeIcon} mr-1"></i>
                                     ${changePercent}%
                                 </div>
                             </div>
                         </div>
+                        <button class="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-error delete-symbol" data-id="${symbolData.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </div>
                 `;
                 
@@ -352,7 +390,18 @@ function loadWatchlist() {
                 watchlistItems.appendChild(item);
             });
             
-            // Add a refresh button at the bottom
+            // Add symbol removal event handlers
+            document.querySelectorAll('.delete-symbol').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const symbolId = this.getAttribute('data-id');
+                    if (confirm('Remove this symbol from watchlist?')) {
+                        removeSymbol(symbolId);
+                    }
+                });
+            });
+            
+                        // Add a refresh button at the bottom
             const refreshButton = document.createElement('button');
             refreshButton.className = 'btn btn-sm btn-ghost gap-2 mt-4 w-full';
             refreshButton.innerHTML = `<i class="fas fa-sync-alt"></i> Refresh Quotes`;
@@ -411,3 +460,104 @@ rsiChart.subscribeCrosshairMove(param => {
     const dataPoint = getCrosshairDataPoint(rsiLine, param);
     syncCrosshair(chart, candlestickSeries, dataPoint);
 });
+
+// Add a new symbol to the watchlist
+function addSymbol() {
+    const symbolInput = document.getElementById('newSymbol');
+    const symbolError = document.getElementById('symbolError');
+    const symbol = symbolInput.value.trim().toUpperCase();
+    
+    // Clear previous error
+    symbolError.classList.add('hidden');
+    symbolError.textContent = '';
+    
+    if (!symbol) {
+        symbolError.textContent = 'Please enter a symbol';
+        symbolError.classList.remove('hidden');
+        return;
+    }
+    
+    // Show loading state
+    const addBtn = document.getElementById('addSymbolBtn');
+    const originalContent = addBtn.innerHTML;
+    addBtn.innerHTML = '<span class="loading loading-spinner loading-xs"></span>';
+    addBtn.disabled = true;
+    
+    // Send request to add symbol
+    fetch('/api/symbols', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ symbol: symbol }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            symbolError.textContent = data.error;
+            symbolError.classList.remove('hidden');
+        } else {
+            // Clear input
+            symbolInput.value = '';
+            
+            // Add new symbol to the watchlist without full refresh
+            // Only fetch the individual symbol data
+            refreshSymbolQuote(data.symbol.ticker);
+        }
+    })
+    .catch(error => {
+        console.error('Error adding symbol:', error);
+        symbolError.textContent = 'Error adding symbol. Please try again.';
+        symbolError.classList.remove('hidden');
+    })
+    .finally(() => {
+        // Restore button
+        addBtn.innerHTML = originalContent;
+        addBtn.disabled = false;
+    });
+}
+
+// Fetch individual symbol quote
+function refreshSymbolQuote(symbol) {
+    // This is just a partial refresh for a single symbol
+    // For now, just reload the full watchlist since we need to implement
+    // a new API endpoint for getting a single symbol's data
+    loadWatchlist();
+}
+
+// Remove a symbol from the watchlist
+function removeSymbol(symbolId) {
+    // Find and remove the element from the DOM directly for immediate feedback
+    const symbolElement = document.querySelector(`.delete-symbol[data-id="${symbolId}"]`).closest('.card');
+    if (symbolElement) {
+        symbolElement.classList.add('animate-fade-out');
+        setTimeout(() => {
+            symbolElement.style.height = symbolElement.offsetHeight + 'px';
+            setTimeout(() => {
+                symbolElement.style.height = '0';
+                symbolElement.style.opacity = '0';
+                symbolElement.style.margin = '0';
+                symbolElement.style.padding = '0';
+                symbolElement.style.overflow = 'hidden';
+                setTimeout(() => symbolElement.remove(), 300);
+            }, 10);
+        }, 100);
+    }
+    
+    // Also remove from database
+    fetch(`/api/symbols/${symbolId}`, {
+        method: 'DELETE',
+    })
+    .then(response => {
+        if (!response.ok) {
+            console.error('Error removing symbol:', response.statusText);
+            // If failed, reload the watchlist to restore the removed item
+            loadWatchlist(); 
+        }
+    })
+    .catch(error => {
+        console.error('Error removing symbol:', error);
+        // If failed, reload the watchlist to restore the removed item
+        loadWatchlist();
+    });
+}
