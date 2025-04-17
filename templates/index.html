@@ -5,76 +5,271 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TradingView Chart with Yahoo Finance Data</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.3/dist/full.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            },
+            daisyui: {
+                themes: [
+                    {
+                        light: {
+                            "primary": "#0ea5e9",
+                            "secondary": "#6366f1",
+                            "accent": "#22d3ee",
+                            "neutral": "#1f2937",
+                            "base-100": "#f3f4f6",
+                            "base-200": "#e5e7eb",
+                            "base-300": "#d1d5db",
+                            "info": "#3b82f6",
+                            "success": "#10b981",
+                            "warning": "#f59e0b",
+                            "error": "#ef4444",
+                        },
+                        dark: {
+                            "primary": "#38bdf8",
+                            "secondary": "#818cf8",
+                            "accent": "#67e8f9",
+                            "neutral": "#f3f4f6",
+                            "base-100": "#1f2937",
+                            "base-200": "#111827",
+                            "base-300": "#0f172a",
+                            "info": "#60a5fa",
+                            "success": "#34d399",
+                            "warning": "#fbbf24",
+                            "error": "#f87171",
+                        }
+                    }
+                ],
+            },
+        }
+    </script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            overflow: hidden;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
         .watchlist {
-            width: 200px;
-            border-left: 1px solid #ccc;
-            transition: background-color 0.3s, color 0.3s;
+            width: 240px;
+            transition: all 0.3s ease;
+            border-left: 1px solid rgba(209, 213, 219, 0.5);
         }
+        
+        .dark .watchlist {
+            border-left: 1px solid rgba(55, 65, 81, 0.7);
+        }
+        
         .watchlist-item {
-            padding: 10px;
+            padding: 12px;
+            margin: 4px 0;
+            border-radius: 0.375rem;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.2s ease;
         }
+        
         .watchlist-item:hover {
-            background-color: #f0f0f0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .chart-container {
+            transition: height 0.5s ease;
+            position: relative;
+        }
+        
+        .button-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button-shine::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(45deg);
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+        
+        .button-shine:hover::after {
+            opacity: 1;
+            transform: rotate(45deg) translate(50%, -50%);
+        }
+        
+        input, select {
+            transition: all 0.2s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.5);
+            border-color: #3b82f6;
         }
     </style>
 </head>
-<body class="bg-white text-black">
-    <div class="flex h-screen">
-        <div class="flex-grow flex flex-col">
-            <header class="p-4 bg-gray-800 text-white">
-                <div class="flex justify-between items-center mt-4">
-                    <div id="controls" class="flex space-x-4 items-center">
-                        <div class="flex items-center space-x-2">
-                            <label for="ticker" class="text-white">Symbol</label>
-                            <input type="text" id="ticker" class="p-2 rounded border w-24 bg-gray-900 text-white" placeholder="Symbol" value="NVDA">
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <label for="timeframe" class="text-white">Interval</label>
-                            <select id="timeframe" class="p-2 rounded border w-20 bg-gray-900 text-white">
-                                <option value="1m">1m</option>
-                                <option value="5m">5m</option>
-                                <option value="15m">15m</option>
-                                <option value="60m">1h</option>
-                                <option value="1d" selected>1d</option>
-                                <option value="1wk">1wk</option>
-                                <option value="1mo">1mo</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <label for="emaPeriod" class="text-white">EMA</label>
-                            <input type="number" id="emaPeriod" class="p-2 rounded border w-16 bg-gray-900 text-white" placeholder="EMA" value="20" min="1" max="200">
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <label for="rsiPeriod" class="text-white">RSI</label>
-                            <input type="number" id="rsiPeriod" class="p-2 rounded border w-16 bg-gray-900 text-white" placeholder="RSI" value="14" min="1" max="200">
-                        </div>
-                        <button id="fetchData" class="p-2 bg-blue-500 text-white rounded">Fetch Data</button>
-                        <div class="flex items-center space-x-2">
-                            <label for="autoUpdate" class="text-white">Auto-update</label>
-                            <input type="checkbox" id="autoUpdate" class="p-2 rounded border">
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <label for="updateFrequency" class="text-white">Frequency (s)</label>
-                            <input type="number" id="updateFrequency" class="p-2 rounded border w-12 bg-gray-900 text-white" placeholder="5" value="5" min="1">
-                        </div>
+<body class="min-h-screen animate-fade-in" data-theme="light">
+    <div class="drawer lg:drawer-open">
+        <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+        
+        <!-- Page content goes here -->
+        <div class="drawer-content flex flex-col h-screen">
+            <header class="navbar bg-base-100 shadow-md z-10">
+                <div class="flex-none lg:hidden">
+                    <label for="drawer-toggle" class="btn btn-square btn-ghost drawer-button">
+                        <i class="fas fa-bars"></i>
+                    </label>
+                </div>
+                
+                <div class="flex-1 px-2">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-chart-line text-primary text-2xl"></i>
+                        <h1 class="text-xl font-bold">YahooFinance <span class="text-primary">Charts</span></h1>
                     </div>
-                    <button id="themeToggle" class="p-2 bg-gray-700 text-white rounded">Toggle Theme</button>
+                </div>
+                
+                <div class="flex-none">
+                    <button id="themeToggle" class="btn btn-sm btn-ghost gap-2">
+                        <i class="fas fa-moon dark-icon"></i>
+                        <i class="fas fa-sun light-icon hidden"></i>
+                        <span class="hidden md:inline">Theme</span>
+                    </button>
                 </div>
             </header>
-            <main class="flex-grow">
-                <div id="chart" class="w-full h-2/3"></div>
-                <div id="rsiChart" class="w-full h-1/3"></div>
-            </main>
+            
+            <div class="p-4 bg-base-200 flex flex-col gap-4">
+                <div class="card bg-base-100 shadow-md">
+                    <div class="card-body p-4">
+                        <div class="flex flex-col md:flex-row flex-wrap gap-3 justify-between">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Symbol</span>
+                                </label>
+                                <div class="join">
+                                    <div class="relative">
+                                        <input type="text" id="ticker" placeholder="Enter ticker symbol" class="input input-bordered join-item w-full max-w-32" value="NVDA" />
+                                        <button class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Interval</span>
+                                </label>
+                                <select id="timeframe" class="select select-bordered w-full max-w-32">
+                                    <option value="1m">1 minute</option>
+                                    <option value="5m">5 minutes</option>
+                                    <option value="15m">15 minutes</option>
+                                    <option value="60m">1 hour</option>
+                                    <option value="1d" selected>1 day</option>
+                                    <option value="1wk">1 week</option>
+                                    <option value="1mo">1 month</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">EMA Period</span>
+                                </label>
+                                <input type="number" id="emaPeriod" class="input input-bordered w-full max-w-20" value="20" min="1" max="200" />
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">RSI Period</span>
+                                </label>
+                                <input type="number" id="rsiPeriod" class="input input-bordered w-full max-w-20" value="14" min="1" max="200" />
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Auto-update</span>
+                                </label>
+                                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                    <div class="flex items-center gap-2">
+                                        <input type="checkbox" id="autoUpdate" class="toggle toggle-primary" />
+                                        <span class="text-sm font-medium">Enable</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" id="updateFrequency" class="input input-bordered input-sm w-16" value="5" min="1" />
+                                        <span class="text-sm">sec</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-control self-end mb-2">
+                                <button id="fetchData" class="btn btn-primary gap-2">
+                                    <i class="fas fa-sync-alt"></i>
+                                    Fetch Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="chart" class="chart-container card bg-base-100 shadow-md h-[50vh] p-1 mb-2"></div>
+                <div id="rsiChart" class="chart-container card bg-base-100 shadow-md h-[20vh] p-1"></div>
+            </div>
         </div>
-        <div id="watchlist" class="watchlist p-4 bg-gray-100 text-black">
-            <h3 class="font-bold text-lg mb-4">Watchlist</h3>
-            <div id="watchlistItems" class="flex flex-col"></div>
+        
+        <!-- Sidebar content -->
+        <div class="drawer-side z-40">
+            <label for="drawer-toggle" aria-label="close sidebar" class="drawer-overlay"></label>
+            <div id="watchlist" class="menu p-4 w-64 min-h-full bg-base-100 text-base-content">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold">Watchlist</h3>
+                    <button class="btn btn-ghost btn-circle btn-sm">
+                        <i class="fas fa-plus text-primary"></i>
+                    </button>
+                </div>
+                <div id="watchlistItems" class="flex flex-col gap-2 overflow-y-auto max-h-[calc(100vh-6rem)]"></div>
+            </div>
         </div>
     </div>
+    
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <script src="static/main.js"></script>
+    <script>
+        // Toggle switch styling
+        document.getElementById('autoUpdate').addEventListener('change', function() {
+            if(this.checked) {
+                this.classList.add('translate-x-4');
+                this.classList.remove('translate-x-0');
+            } else {
+                this.classList.remove('translate-x-4');
+                this.classList.add('translate-x-0');
+            }
+        });
+        
+        // Theme toggle functionality (extended from main.js)
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            document.body.classList.toggle('dark');
+        });
+    </script>
 </body>
 </html>

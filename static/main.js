@@ -1,22 +1,48 @@
-// Initial chart setup
+// Check if dark mode is active
+const isDarkMode = document.body.classList.contains('dark');
+
+// Initial chart setup with improved styling
 const chartOptions1 = {
     layout: {
-        background: { type: 'solid', color: 'white' },
-        textColor: 'black',
+        background: { type: 'solid', color: isDarkMode ? '#111827' : 'white' },
+        textColor: isDarkMode ? '#f3f4f6' : '#1f2937',
+        fontFamily: 'Inter, sans-serif',
     },
     grid: {
         vertLines: {
-            color: '#e1e1e1',
+            color: isDarkMode ? 'rgba(55, 65, 81, 0.5)' : 'rgba(229, 231, 235, 0.8)',
+            style: 1, // Solid line style
         },
         horzLines: {
-            color: '#e1e1e1',
+            color: isDarkMode ? 'rgba(55, 65, 81, 0.5)' : 'rgba(229, 231, 235, 0.8)',
+            style: 1, // Solid line style
         },
     },
     crosshair: {
         mode: LightweightCharts.CrosshairMode.Normal,
+        vertLine: {
+            color: isDarkMode ? 'rgba(156, 163, 175, 0.5)' : 'rgba(75, 85, 99, 0.3)',
+            width: 1,
+            style: 2, // Dashed line
+        },
+        horzLine: {
+            color: isDarkMode ? 'rgba(156, 163, 175, 0.5)' : 'rgba(75, 85, 99, 0.3)',
+            width: 1,
+            style: 2, // Dashed line
+        },
     },
     timeScale: {
         visible: false,
+        borderColor: isDarkMode ? '#374151' : '#e5e7eb',
+        timeVisible: true,
+        secondsVisible: false,
+    },
+    rightPriceScale: {
+        borderColor: isDarkMode ? '#374151' : '#e5e7eb',
+        scaleMargins: {
+            top: 0.1, 
+            bottom: 0.2,
+        },
     },
     width: document.getElementById('chart').clientWidth,
     height: document.getElementById('chart').clientHeight,
@@ -24,19 +50,45 @@ const chartOptions1 = {
 
 const chartOptions2 = {
     layout: {
-        background: { type: 'solid', color: 'white' },
-        textColor: 'black',
+        background: { type: 'solid', color: isDarkMode ? '#111827' : 'white' },
+        textColor: isDarkMode ? '#f3f4f6' : '#1f2937',
+        fontFamily: 'Inter, sans-serif',
     },
     grid: {
         vertLines: {
-            color: '#e1e1e1',
+            color: isDarkMode ? 'rgba(55, 65, 81, 0.5)' : 'rgba(229, 231, 235, 0.8)',
+            style: 1,
         },
         horzLines: {
-            color: '#e1e1e1',
+            color: isDarkMode ? 'rgba(55, 65, 81, 0.5)' : 'rgba(229, 231, 235, 0.8)',
+            style: 1,
+        },
+    },
+    crosshair: {
+        mode: LightweightCharts.CrosshairMode.Normal,
+        vertLine: {
+            color: isDarkMode ? 'rgba(156, 163, 175, 0.5)' : 'rgba(75, 85, 99, 0.3)',
+            width: 1,
+            style: 2,
+        },
+        horzLine: {
+            color: isDarkMode ? 'rgba(156, 163, 175, 0.5)' : 'rgba(75, 85, 99, 0.3)',
+            width: 1,
+            style: 2,
         },
     },
     timeScale: {
         visible: true,
+        borderColor: isDarkMode ? '#374151' : '#e5e7eb',
+        timeVisible: true,
+        secondsVisible: false,
+    },
+    rightPriceScale: {
+        borderColor: isDarkMode ? '#374151' : '#e5e7eb',
+        scaleMargins: {
+            top: 0.1, 
+            bottom: 0.2,
+        },
     },
     width: document.getElementById('chart').clientWidth,
     height: document.getElementById('rsiChart').clientHeight,
@@ -119,108 +171,203 @@ window.addEventListener('resize', () => {
     rsiChart.resize(document.getElementById('rsiChart').clientWidth, document.getElementById('rsiChart').clientHeight);
 });
 
-// Theme toggle functionality
+// Theme toggle functionality for DaisyUI
 document.getElementById('themeToggle').addEventListener('click', () => {
-    const bodyClassList = document.body.classList;
-    const watchlist = document.getElementById('watchlist');
-    const inputs = document.querySelectorAll('input, select');
-    if (bodyClassList.contains('bg-white')) {
-        bodyClassList.replace('bg-white', 'bg-gray-900');
-        bodyClassList.replace('text-black', 'text-white');
-        watchlist.classList.replace('bg-gray-100', 'bg-gray-800');
-        watchlist.classList.replace('text-black', 'text-white');
-        inputs.forEach(input => {
-            input.classList.replace('bg-white', 'bg-gray-900');
-            input.classList.replace('text-black', 'text-white');
-        });
+    const currentTheme = document.body.getAttribute('data-theme');
+    const darkIcon = document.querySelector('.dark-icon');
+    const lightIcon = document.querySelector('.light-icon');
+    
+    if (currentTheme === 'light') {
+        // Switch to dark theme
+        document.body.setAttribute('data-theme', 'dark');
+        darkIcon.classList.add('hidden');
+        lightIcon.classList.remove('hidden');
+        
+        // Update chart options for dark theme
         chart.applyOptions({
             layout: {
-                background: { type: 'solid', color: 'black' },
-                textColor: 'white',
+                background: { type: 'solid', color: '#1f2937' },
+                textColor: '#f3f4f6',
             },
             grid: {
                 vertLines: {
-                    color: 'black',
+                    color: 'rgba(55, 65, 81, 0.5)',
                 },
                 horzLines: {
-                    color: 'black',
+                    color: 'rgba(55, 65, 81, 0.5)',
                 },
-            }
+            },
+            rightPriceScale: {
+                borderColor: '#374151',
+            },
+            timeScale: {
+                borderColor: '#374151',
+            },
         });
+        
         rsiChart.applyOptions({
             layout: {
-                background: { type: 'solid', color: 'black' },
-                textColor: 'white',
+                background: { type: 'solid', color: '#1f2937' },
+                textColor: '#f3f4f6',
             },
             grid: {
                 vertLines: {
-                    color: 'black',
+                    color: 'rgba(55, 65, 81, 0.5)',
                 },
                 horzLines: {
-                    color: 'black',
+                    color: 'rgba(55, 65, 81, 0.5)',
                 },
-            }
+            },
+            rightPriceScale: {
+                borderColor: '#374151',
+            },
+            timeScale: {
+                borderColor: '#374151',
+            },
         });
     } else {
-        bodyClassList.replace('bg-gray-900', 'bg-white');
-        bodyClassList.replace('text-white', 'text-black');
-        watchlist.classList.replace('bg-gray-800', 'bg-gray-100');
-        watchlist.classList.replace('text-white', 'text-black');
-        inputs.forEach(input => {
-            input.classList.replace('bg-gray-900', 'bg-white');
-            input.classList.replace('text-white', 'text-black');
-        });
+        // Switch to light theme
+        document.body.setAttribute('data-theme', 'light');
+        darkIcon.classList.remove('hidden');
+        lightIcon.classList.add('hidden');
+        
+        // Update chart options for light theme
         chart.applyOptions({
             layout: {
                 background: { type: 'solid', color: 'white' },
-                textColor: 'black',
+                textColor: '#1f2937',
             },
             grid: {
                 vertLines: {
-                    color: '#e1e1e1',
+                    color: 'rgba(229, 231, 235, 0.8)',
                 },
                 horzLines: {
-                    color: '#e1e1e1',
+                    color: 'rgba(229, 231, 235, 0.8)',
                 },
-            }
+            },
+            rightPriceScale: {
+                borderColor: '#e5e7eb',
+            },
+            timeScale: {
+                borderColor: '#e5e7eb',
+            },
         });
+        
         rsiChart.applyOptions({
             layout: {
                 background: { type: 'solid', color: 'white' },
-                textColor: 'black',
+                textColor: '#1f2937',
             },
             grid: {
                 vertLines: {
-                    color: '#e1e1e1',
+                    color: 'rgba(229, 231, 235, 0.8)',
                 },
                 horzLines: {
-                    color: '#e1e1e1',
+                    color: 'rgba(229, 231, 235, 0.8)',
                 },
-            }
+            },
+            rightPriceScale: {
+                borderColor: '#e5e7eb',
+            },
+            timeScale: {
+                borderColor: '#e5e7eb',
+            },
         });
     }
 });
 
-// Load watchlist symbols from the server
+// Load watchlist symbols from the server with real quotes
 function loadWatchlist() {
+    // Show loading state
+    const watchlistItems = document.getElementById('watchlistItems');
+    watchlistItems.innerHTML = `
+        <div class="flex justify-center items-center p-8">
+            <span class="loading loading-spinner loading-md text-primary"></span>
+            <span class="ml-2">Loading quotes...</span>
+        </div>
+    `;
+    
     fetch('/api/symbols')
         .then(response => response.json())
-        .then(symbols => {
-            const watchlistItems = document.getElementById('watchlistItems');
+        .then(symbolsData => {
             watchlistItems.innerHTML = '';
-            symbols.forEach(symbol => {
+            
+            if (symbolsData.length === 0) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'flex flex-col items-center justify-center p-6 text-center text-opacity-70';
+                emptyState.innerHTML = `
+                    <i class="fas fa-list text-3xl mb-2 text-primary opacity-50"></i>
+                    <p>No symbols in watchlist</p>
+                    <button class="btn btn-sm btn-outline btn-primary mt-2">Add Symbol</button>
+                `;
+                watchlistItems.appendChild(emptyState);
+                return;
+            }
+            
+            symbolsData.forEach(symbolData => {
                 const item = document.createElement('div');
-                item.className = 'watchlist-item';
-                item.innerText = symbol;
+                item.className = 'card bg-base-100 hover:bg-base-200 shadow-sm hover:shadow cursor-pointer transition-all';
+                
+                // Format the data
+                const price = symbolData.price ? symbolData.price.toFixed(2) : 'N/A';
+                const changePercent = symbolData.change ? symbolData.change.toFixed(2) : 0;
+                const isPositive = changePercent > 0;
+                const changeClass = isPositive ? 'text-success' : (changePercent < 0 ? 'text-error' : 'text-gray-500');
+                const changeIcon = isPositive ? 'caret-up' : (changePercent < 0 ? 'caret-down' : 'minus');
+                
+                // Create tooltip with more info
+                const tooltipContent = `${symbolData.name || symbolData.symbol} (${symbolData.currency})`;
+                
+                item.innerHTML = `
+                    <div class="card-body p-3" data-tip="${tooltipContent}">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-bold">${symbolData.symbol}</h3>
+                                <div class="text-xs opacity-70 truncate max-w-32" title="${symbolData.name || symbolData.symbol}">
+                                    ${symbolData.name || 'Yahoo Finance'}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-medium">${symbolData.currency} ${price}</div>
+                                <div class="text-xs ${changeClass}">
+                                    <i class="fas fa-${changeIcon} mr-1"></i>
+                                    ${changePercent}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
                 item.addEventListener('click', () => {
-                    document.getElementById('ticker').value = symbol;
-                    fetchData(symbol, document.getElementById('timeframe').value, document.getElementById('emaPeriod').value, document.getElementById('rsiPeriod').value);
+                    document.getElementById('ticker').value = symbolData.symbol;
+                    // Add active indicator
+                    document.querySelectorAll('.card.border-primary').forEach(el => {
+                        el.classList.remove('border-primary', 'border');
+                    });
+                    item.classList.add('border-primary', 'border');
+                    
+                    fetchData(symbolData.symbol, document.getElementById('timeframe').value, document.getElementById('emaPeriod').value, document.getElementById('rsiPeriod').value);
                 });
+                
                 watchlistItems.appendChild(item);
             });
+            
+            // Add a refresh button at the bottom
+            const refreshButton = document.createElement('button');
+            refreshButton.className = 'btn btn-sm btn-ghost gap-2 mt-4 w-full';
+            refreshButton.innerHTML = `<i class="fas fa-sync-alt"></i> Refresh Quotes`;
+            refreshButton.addEventListener('click', loadWatchlist);
+            watchlistItems.appendChild(refreshButton);
         })
         .catch(error => {
             console.error('Error loading watchlist:', error);
+            watchlistItems.innerHTML = `
+                <div class="alert alert-error shadow-lg">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Error loading watchlist data</span>
+                    <button class="btn btn-sm btn-ghost" onclick="loadWatchlist()">Retry</button>
+                </div>
+            `;
         });
 }
 

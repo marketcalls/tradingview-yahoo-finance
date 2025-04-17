@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import pandas_ta as ta
 from datetime import datetime, timedelta
+import json
 
 app = Flask(__name__)
 
@@ -66,8 +67,42 @@ def get_data(ticker, interval, ema_period, rsi_period):
 @app.route('/api/symbols')
 def get_symbols():
     with open('symbols.txt') as f:
-        symbols = [line.strip() for line in f]
-    return jsonify(symbols)
+        symbol_list = [line.strip() for line in f]
+    
+    # Get real quotes for symbols
+    try:
+        symbols_str = ' '.join(symbol_list)
+        tickers = yf.Tickers(symbols_str)
+        
+        symbols_data = []
+        for symbol in symbol_list:
+            try:
+                ticker_info = tickers.tickers[symbol].info
+                quote_data = {
+                    'symbol': symbol,
+                    'price': ticker_info.get('currentPrice', 0),
+                    'change': ticker_info.get('regularMarketChangePercent', 0),
+                    'name': ticker_info.get('shortName', symbol),
+                    'currency': ticker_info.get('currency', 'USD')
+                }
+                symbols_data.append(quote_data)
+            except Exception as e:
+                # Fallback data if we can't get info for a particular symbol
+                symbols_data.append({
+                    'symbol': symbol,
+                    'price': 0,
+                    'change': 0,
+                    'name': symbol,
+                    'currency': 'USD'
+                })
+                print(f"Error getting data for {symbol}: {e}")
+        
+        return jsonify(symbols_data)
+    
+    except Exception as e:
+        print(f"Error fetching quotes: {e}")
+        # Fallback to just returning the symbols without data
+        return jsonify([{'symbol': s, 'price': 0, 'change': 0, 'name': s, 'currency': 'USD'} for s in symbol_list])
 
 if __name__ == '__main__':
     app.run(debug=True)
