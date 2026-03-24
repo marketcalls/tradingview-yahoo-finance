@@ -1,7 +1,6 @@
 from flask import Flask, render_template, jsonify, request
 import yfinance as yf
 import pandas as pd
-import pandas_ta as ta
 from datetime import datetime, timedelta
 import json
 import os
@@ -16,6 +15,19 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database
 db.init_app(app)
+
+def calculate_ema(series, period):
+    """Calculate Exponential Moving Average"""
+    return series.ewm(span=period, adjust=False).mean()
+
+def calculate_rsi(series, period):
+    """Calculate Relative Strength Index"""
+    delta = series.diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+    rs = gain / loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
 
 def fetch_yahoo_data(ticker, interval, ema_period=20, rsi_period=14):
     ticker = yf.Ticker(ticker)
@@ -33,8 +45,8 @@ def fetch_yahoo_data(ticker, interval, ema_period=20, rsi_period=14):
         start_date = end_date - timedelta(days=365*5)
 
     data = ticker.history(start=start_date, end=end_date, interval=interval)
-    data['EMA'] = ta.ema(data['Close'], length=ema_period)
-    data['RSI'] = ta.rsi(data['Close'], length=rsi_period)
+    data['EMA'] = calculate_ema(data['Close'], ema_period)
+    data['RSI'] = calculate_rsi(data['Close'], rsi_period)
 
     candlestick_data = [
         {
