@@ -62,3 +62,8 @@ logs/
 .env.development
 .env.test
 .env.production
+
+# Docker
+.docker/
+docker-compose.override.yml
+symbols.db
